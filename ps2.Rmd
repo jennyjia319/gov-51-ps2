@@ -1,0 +1,141 @@
+---
+title: "PS2"
+author: "Jenny Jia"
+date: "2026-03-03"
+output: pdf_document
+---
+GitHub Repository URL: https://github.com/jennyjia319/gov-51-ps2
+
+# 1 Part 1: The Original Study
+## 1.1 Exploring the Experiment
+### 1.1.1 Load Packages and Data
+```{r}
+library(tidyverse)
+gay <- read.csv("data/raw/gay.csv")
+```
+### Q1.1
+```{r}
+nrow(gay) # look at total observations
+n_distinct(gay$study) # look at unique values
+unique(gay$treatment) #list treatment conditions
+```
+There are 69,592 total observations in the dataset. There are 2 unique values of study. The treatment conditions are: "no contact", "recycling script by gay canvasser", "same-sex marriage script by gay canvasser", "recycling script by straight canvasser", and "same-sex marriage script by straight canvasser". 
+
+### Q1.2
+```{r}
+study1wave1 <- gay |> # create new dataset that only includes study 1 and wave 1
+  filter(study == 1, wave == 1)
+mean <- study1wave1 |> 
+  group_by(treatment) |> 
+  summarize(mean_ssm = mean(ssm, na.rm = TRUE)) |> 
+  arrange(desc(mean_ssm)) # arrange for easier viewing 
+mean # to show the highest means
+```
+Within study 1 wave 1, treatment group "Recycling Script by Gay Canvasser" shows the highest average support, with a mean of 3.13. 
+
+### Q1.3
+```{r}
+gay |>
+  filter(study == 1, wave == 1) |>
+  group_by(treatment) |> #separate by treatment group
+  summarize(sd_ssm = sd(ssm, na.rm = TRUE)) # SD calculation
+```
+The standard deviations are:
+1.68 for No Contact
+1.70 for Recycling Script by Gay Canvasser
+1.68 for Recycling Script by Straight Canvasser
+1.67 for Same-Sex Marriage Script by Gay Canvasser
+1.68 for Same-Sex Marriage Script by Straight Canvasser. 
+These standard deviations fall within the narrow range of 1.67-1.70. What this indicates is that the variability in attitudes is comparable across the 5 groups. This is positive, and reflects the assumption that randomization creates balanced groups. In the case that a group had a noticeably larger or smaller standard deviation, it would complicate how we can determine the fact that the treatment is solely responsible for the differences in means. 
+
+### Q1.4
+```{r}
+study1wave1_means <- gay |>
+  filter(study == 1, wave == 1) |>   
+  group_by(treatment) |>            
+  summarize(mean_ssm = mean(ssm, na.rm = TRUE) 
+  )
+study1wave1_means
+```
+```{r, fig.width=13, fig.height=5} 
+#changed dimensions because default dimensions were too narrow
+ggplot(study1wave1_means,
+       aes(x = reorder(treatment, -mean_ssm), y = mean_ssm)) +
+  geom_col() +
+  labs(
+    title = "Mean Same-Sex Marriage Support: Study 1, Wave 1",
+    x = "Treatment Group",
+    y = "Mean SSM (1–5)"
+  )
+```
+In general, the means are so similar that it's hard to see the differences on the graph. 
+
+## 1.2 Checking Balance and Comparing Outcomes
+### Q1.5 
+```{r}
+study1wave1_check <- gay |>
+  filter(study == 1, wave == 1,
+    treatment %in% c(
+      "Same-Sex Marriage Script by Gay Canvasser",
+      "No Contact")
+  )
+stats <- study1wave1_check |>
+  group_by(treatment) |>
+  summarize(
+    mean_ssm = mean(ssm, na.rm = TRUE),
+    sd_ssm = sd(ssm, na.rm = TRUE)
+  )
+
+stats
+```
+```{r}
+mean_gayscript <- stats$mean_ssm[
+  stats$treatment == "Same-Sex Marriage Script by Gay Canvasser"
+]
+
+mean_nocontact <- stats$mean_ssm[
+  stats$treatment == "No Contact"
+]
+
+sd_gayscript <- stats$sd_ssm[
+  stats$treatment == "Same-Sex Marriage Script by Gay Canvasser"
+]
+
+sd_nocontact <- stats$sd_ssm[
+  stats$treatment == "No Contact"
+]
+
+SDM <- (mean_gayscript - mean_nocontact) /
+  sqrt((sd_gayscript^2 + sd_nocontact^2) / 2)
+
+SDM
+```
+A standardized difference of -0.01 is achieved when rounded. This is very close to 0 and falls well below the 0.25 threshold for balance. What this means is that, at a baseline, Same-sex Marriage Script by Gay Canvasser group and the No Contact group are nearly identical in terms od attitudes. Thus, randomization created balanced groups. 
+
+### Q1.6
+```{r}
+study1wave2_check <- gay |>
+  filter(study == 1, wave == 2,
+    treatment %in% c(
+      "Same-Sex Marriage Script by Gay Canvasser",
+      "No Contact")
+  )
+wave2_stats <- study1wave2_check |>
+  group_by(treatment) |>
+  summarize(
+    mean_ssm = mean(ssm, na.rm = TRUE)
+  )
+wave2_stats
+```
+```{r}
+mean_gayscript_w2 <- wave2_stats$mean_ssm[
+  wave2_stats$treatment == "Same-Sex Marriage Script by Gay Canvasser"]
+
+mean_nocontact_w2 <- wave2_stats$mean_ssm[
+  wave2_stats$treatment == "No Contact"]
+
+SDM2 <- mean_gayscript_w2 - mean_nocontact_w2
+
+SDM2
+```
+Now looking at Study 1 Wave 2, the mean ssm for No Contact is 3.039615 (3.04 when rounded) and 3.139489 (3.14 when rounded) for Same-sex Marriage Script by Gay Canvasser. The difference in means is 0.09987463 points, or 0.10 when rounded. The difference at wave 2 must suggest, then, that contact with a gay canvasser script moderately shifted attitudes on same-sex marriage relative to the no contact group.
