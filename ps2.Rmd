@@ -139,3 +139,244 @@ SDM2 <- mean_gayscript_w2 - mean_nocontact_w2
 SDM2
 ```
 Now looking at Study 1 Wave 2, the mean ssm for No Contact is 3.039615 (3.04 when rounded) and 3.139489 (3.14 when rounded) for Same-sex Marriage Script by Gay Canvasser. The difference in means is 0.09987463 points, or 0.10 when rounded. The difference at wave 2 must suggest, then, that contact with a gay canvasser script moderately shifted attitudes on same-sex marriage relative to the no contact group.
+# 2 Part 2: The Forensic Discovery
+## 2.1 The Baseline Distribution
+### Q2.1
+```{r}
+gay_r <- read_csv("data/raw/gayreshaped.csv") 
+ccap <- read_csv("data/raw/ccap2012.csv")
+
+nrow(gay_r) # number of observations
+nrow(ccap)
+
+names(gay_r) # names of columns
+names(ccap)
+```
+There are 11,948 observations in the gayreshaped dataset, and 43,998 observations in the ccap dataset. In the gayreshaped dataset, there are 6 variables: "treatment", "therm1", "therm2", therm3", "therm4". The therm variables measure thermometer scores from 0-100 toward gay men and lesbians. The ccap dataset has 6 variables: "..1", "caseid", "gaytherm", where gaytherm measures thermometer attitudes toward gay men and lesbians. 
+
+### Q2.2
+```{r}
+gay_baseline <- gay_r |>
+  filter(study == 1)
+
+gay_stats <- gay_baseline |>
+  summarize(
+    mean = mean(therm1, na.rm = TRUE),
+    median = median(therm1, na.rm = TRUE),
+    sd = sd(therm1, na.rm = TRUE)
+  )
+
+ccap_stats <- ccap |>
+  summarize(
+    mean = mean(gaytherm, na.rm = TRUE),
+    median = median(gaytherm, na.rm = TRUE),
+    sd = sd(gaytherm, na.rm = TRUE)
+  )
+
+comparison <- rbind( #combine both for side by side comparison 
+  cbind(dataset = "Gay Study", gay_stats),
+  cbind(dataset = "CCAP", ccap_stats)
+)
+
+comparison
+```
+The scores in the Study 1 sample have a mean of 58.38 (when rounded), median of 52, and standard deviation of 28.50 (when rounded). In the 2012 CCAP dataset, the mean is 58.71 (when rounded), median is 54, and standard deviation is 29.37. These numbers are noticeably similar. Given the context of the study, this raises questions on whether the data has been fabricated to appear smoother. 
+
+### Q2.3
+```{r}
+gay_histogram <- gay_r |>
+  filter(study == 1) |>
+  select(therm1) |>
+  mutate(source = "LaCour Study 1 Baseline",
+         therm = therm1) |>
+  select(source, therm)
+
+# CCAP thermometer (remove missing values)
+ccap_histogram <- ccap |>
+  filter(!is.na(gaytherm)) |>
+  mutate(source = "CCAP 2012",
+         therm = gaytherm) |>
+  select(source, therm)
+
+combined_histogram <- rbind(gay_histogram, ccap_histogram) #combined into one dataset
+
+ggplot(combined_histogram, aes(x = therm)) + # side by side historgram creation
+  geom_histogram(breaks = seq(0, 100, by = 5), color = "lightpink") +
+  facet_wrap(~ source) +
+  labs(
+    title = "Comparison of Thermometer Distributions",
+    x = "Feeling Score Toward Gay Men and Lesbians (0–100)",
+    y = "Number of Respondents"
+  )
+```
+Shape-wise, both distributions look generally similar, with more concentration in respondents around the scores of 50 and 100 in both datasets. Because they appear so similar, this may be a red flag, as both these samples were supposed to have been collected independently from each other, so it is rather suspicious how they could appear so similar. 
+
+## 3.2 Checking Balance and Comparing Outcomes in Study 2
+### Q3.3 
+```{r}
+study2_check <- gay_r |> # now we do study 2
+  filter(
+    study == 2,
+    treatment %in% c(
+      "Same-Sex Marriage Script by Gay Canvasser",
+      "No Contact"
+    )
+  )
+
+study2_stats <- study2_check |> #mean and sd calculations
+  group_by(treatment) |>
+  summarize(
+    mean_therm1 = mean(therm1, na.rm = TRUE),
+    sd_therm1 = sd(therm1, na.rm = TRUE)
+  )
+
+study2_stats
+```
+```{r}
+mean_gayscript_study2 <- study2_stats$mean_therm1[
+  study2_stats$treatment == "Same-Sex Marriage Script by Gay Canvasser"
+]
+
+mean_nocontact_study2 <- study2_stats$mean_therm1[
+  study2_stats$treatment == "No Contact"
+]
+
+sd_gayscript_study2 <- study2_stats$sd_therm1[
+  study2_stats$treatment == "Same-Sex Marriage Script by Gay Canvasser"
+]
+
+sd_nocontact_study2 <- study2_stats$sd_therm1[
+  study2_stats$treatment == "No Contact"
+]
+
+SDMstudy2 <- (mean_gayscript_study2 - mean_nocontact_study2) /
+  sqrt((sd_gayscript_study2^2 + sd_nocontact_study2^2) / 2)
+
+SDMstudy2
+```
+In study 2 at baseline, the mean and standard deviation of the No Contact group was 57.89 (when rounded) and 28.70 (when rounded). The Same-sex Marriage Script by Gay Canvasser group had a mean of 59.35 (when rounded) and standard deviation of 28.42 (when rounded). The standardized difference in means is 0.05128243 (0.05 when rounded). This is far below the 0.25 threshold, which indicates that the groups look well-balanced. 
+
+### Q3.4
+```{r}
+study2_postconversation <- gay_r |> 
+  filter(
+    study == 2,
+    treatment %in% c(
+      "Same-Sex Marriage Script by Gay Canvasser",
+      "No Contact"
+    )
+  ) |>
+  group_by(treatment) |>
+  summarize(
+    mean_therm2 = mean(therm2, na.rm = TRUE)
+  )
+
+study2_postconversation
+```
+```{r}
+mean_gay_postconversation <- study2_postconversation$mean_therm2[ # difference
+  study2_postconversation$treatment == "Same-Sex Marriage Script by Gay Canvasser"
+]
+
+mean_no_postconversation <- study2_postconversation$mean_therm2[
+  study2_postconversation$treatment == "No Contact"
+]
+
+comparison_study2 <- mean_gay_postconversation - mean_no_postconversation
+
+comparison_study2
+```
+In Study 2, the mean post-conversation thermometer score is 61.20 for the Same-Sex Marriage Script by Gay Canvasser group and 57.64 for the No Contact group (both when rounded). The difference in means is 3.57 points. Since the groups were balanced at baseline, this difference suggests that the canvassing treatment did increase favorable attitudes toward gay men and lesbians.
+
+## 3.3 Uncertainty Around the Difference
+### Q3.5
+```{r}
+study2_post_summary <- gay_r |> # filter to study 2
+  filter(study == 2, treatment %in% c(
+      "Same-Sex Marriage Script by Gay Canvasser",
+      "No Contact")
+  ) |>
+  group_by(treatment) |> # calculations for values 
+  summarize(
+    mean_therm2_study2 = mean(therm2, na.rm = TRUE),
+    variance_therm2_study2 = var(therm2, na.rm = TRUE),
+    n_therm2_study2 = sum(!is.na(therm2)) #sample size
+  )
+
+study2_post_summary
+```
+```{r}
+mean_gay_therm2_study2 <- study2_post_summary$mean_therm2_study2[ # means for each group
+  study2_post_summary$treatment == "Same-Sex Marriage Script by Gay Canvasser"
+]
+
+mean_no_therm2_study2 <- study2_post_summary$mean_therm2_study2[
+  study2_post_summary$treatment == "No Contact"
+]
+
+variance_gay_therm2_study2 <- study2_post_summary$variance_therm2_study2[ # variances for each group
+  study2_post_summary$treatment == "Same-Sex Marriage Script by Gay Canvasser"
+]
+
+variance_no_therm2_study2 <- study2_post_summary$variance_therm2_study2[
+  study2_post_summary$treatment == "No Contact"
+]
+
+n_gay_therm2_study2 <- study2_post_summary$n_therm2_study2[ #sample sizes for each group
+  study2_post_summary$treatment == "Same-Sex Marriage Script by Gay Canvasser"
+]
+
+n_no_therm2_study2 <- study2_post_summary$n_therm2_study2[
+  study2_post_summary$treatment == "No Contact"
+]
+
+# standard error calculations
+
+SE_diff_therm2_study2 <- sqrt(
+  (variance_gay_therm2_study2 / n_gay_therm2_study2) +
+  (variance_no_therm2_study2 / n_no_therm2_study2)
+)
+
+SE_diff_therm2_study2
+```
+```{r}
+diff_means_therm2_study2 <- 
+  mean_gay_therm2_study2 - mean_no_therm2_study2 # must find difference in means for CI calculation
+
+lower <- diff_means_therm2_study2 - 1.96 * SE_diff_therm2_study2 # confidence interval calculations
+
+upper <- diff_means_therm2_study2 + 1.96 * SE_diff_therm2_study2
+
+c(lower, upper)
+```
+The standard error is 1.24 when rounded, and the 95% confidence interval is 1.13, 6.00 when rounded. This interval does NOT include 0. Thus, we can conclude that the difference between Gay Canvasser and No Contact groups is statistically significant, at the 5% level. We can say that the act of canvassing increased feeling scores by approximately 1-6 points in study 2. 
+
+## 3.4 Tracking Attitude Over Time
+### 3.6 
+```{r}
+study2_control <- gay_r |> # filter for study 2 only
+  filter(
+    study == 2,
+    treatment == "No Contact"
+  )
+
+correlation12 <- cor(study2_control$therm1, # correlation between wave1 and wave2
+               study2_control$therm2,
+               use = "complete.obs")
+
+correlation13 <- cor(study2_control$therm1, # correlation between wave1 and wave3
+               study2_control$therm3,
+               use = "complete.obs")
+
+correlation14 <- cor(study2_control$therm1, # correlation between wave1 and wave4
+               study2_control$therm4,
+               use = "complete.obs")
+
+correlation12
+correlation13
+correlation14
+```
+The correlation between therm1 and therm2 is 0.97, between therm1 and therm3 is 0.96, and between therm1 and therm4 is 0.97 (all rounded values). These correlations are extremely high and do not show a clear pattern of decay over time, as the correlation with therm4 is nearly the same as with therm2 In real survey data, we would typically expect correlations to decline as waves become more distant due to natural attitude change, so this stable pattern does raise concerns about the authenticity of the data.
+
+### Q3.7
+Study 1 and 2 differ and size and how realistic the results are. In study 2, the post-period treatment effect is 3.57 on the 0-100 thermometer scale, with a 95% confidence interval of 1.13, 6.00. This means that there is a statistically significant but uncertain effect. In contrast, study 1 showed only a 0.10 difference on the 1-5 scale at wave 2, despite the data appearing suspiciously smooth. Usually, real survey data would contain potential variation and errors, so treatment effects should be rather modest. It is important that real treatment effects are smaller and messier because peoples' attitudes are constantly changing. It's actually quite cool to see how we can pick out fabrications in data through analyses tools as simple as histograms and mean calculations. Sometimes, it takes visualization or direct side by side comparison of data to debunk patterns that look too "perfect" to be genuine. 
