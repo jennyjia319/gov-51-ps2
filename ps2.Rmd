@@ -27,11 +27,13 @@ study1wave1 <- gay |> # create new dataset that only includes study 1 and wave 1
   filter(study == 1, wave == 1)
 mean <- study1wave1 |> 
   group_by(treatment) |> 
-  summarize(mean_ssm = mean(ssm, na.rm = TRUE)) |> 
+  summarize(mean_ssm = mean(ssm, na.rm = TRUE), 
+  n = n() # counting observations in each treatment group
+) |>
   arrange(desc(mean_ssm)) # arrange for easier viewing 
 mean # to show the highest means
 ```
-Within study 1 wave 1, treatment group "Recycling Script by Gay Canvasser" shows the highest average support, with a mean of 3.13. 
+Within study 1 wave 1, treatment group "Recycling Script by Gay Canvasser" shows the highest average support, with a mean of 3.130975, and 1046 observations. The other means are: 3.099710 for Same-Sex Marriage by Straight Canvasser with 1033 observations, 3.042764 for No Contact with 5238 observaions, 3.025195 for Same-Sex Marriage Script by Gay Canvasser with 1151 observations, and 3.013474 for Recycling Script by Straight Canvasser with 1039 observations.
 
 ### Q1.3
 ```{r}
@@ -41,11 +43,11 @@ gay |>
   summarize(sd_ssm = sd(ssm, na.rm = TRUE)) # SD calculation
 ```
 The standard deviations are:
-1.68 for No Contact
-1.70 for Recycling Script by Gay Canvasser
-1.68 for Recycling Script by Straight Canvasser
-1.67 for Same-Sex Marriage Script by Gay Canvasser
-1.68 for Same-Sex Marriage Script by Straight Canvasser. 
+1.680540 for No Contact
+1.702533 for Recycling Script by Gay Canvasser
+1.683483 for Recycling Script by Straight Canvasser
+1.666099 for Same-Sex Marriage Script by Gay Canvasser
+1.682885 for Same-Sex Marriage Script by Straight Canvasser. 
 These standard deviations fall within the narrow range of 1.67-1.70. What this indicates is that the variability in attitudes is comparable across the 5 groups. This is positive, and reflects the assumption that randomization creates balanced groups. In the case that a group had a noticeably larger or smaller standard deviation, it would complicate how we can determine the fact that the treatment is solely responsible for the differences in means. 
 
 ### Q1.4
@@ -110,7 +112,7 @@ SDM <- (mean_gayscript - mean_nocontact) /
 
 SDM
 ```
-A standardized difference of -0.01 is achieved when rounded. This is very close to 0 and falls well below the 0.25 threshold for balance. What this means is that, at a baseline, Same-sex Marriage Script by Gay Canvasser group and the No Contact group are nearly identical in terms od attitudes. Thus, randomization created balanced groups. 
+THe means are 3.042764 for the No Contact group and 3.025195 for the Same-Sex Marriage Script by Gay Canvasser group. The SDs are 1.680540 for the No Contact group and 1.666099 for the Same-Sex Marriage Script by Gay Canvasser Group. A standardized difference of -0.01049935 is achieved. This is very close to 0 and falls well below the 0.25 threshold for balance. What this means is that, at a baseline, Same-sex Marriage Script by Gay Canvasser group and the No Contact group are nearly identical in terms od attitudes. Thus, randomization created balanced groups. 
 
 ### Q1.6
 ```{r}
@@ -138,7 +140,7 @@ SDM2 <- mean_gayscript_w2 - mean_nocontact_w2
 
 SDM2
 ```
-Now looking at Study 1 Wave 2, the mean ssm for No Contact is 3.039615 (3.04 when rounded) and 3.139489 (3.14 when rounded) for Same-sex Marriage Script by Gay Canvasser. The difference in means is 0.09987463 points, or 0.10 when rounded. The difference at wave 2 must suggest, then, that contact with a gay canvasser script moderately shifted attitudes on same-sex marriage relative to the no contact group.
+Now looking at Study 1 Wave 2, the mean ssm for No Contact is 3.039615 and 3.139489 for Same-sex Marriage Script by Gay Canvasser. The difference in means is 0.09987463 points. The difference at wave 2 must suggest, then, that contact with a gay canvasser script moderately shifted attitudes on same-sex marriage relative to the no contact group.
 # 2 Part 2: The Forensic Discovery
 ## 2.1 The Baseline Distribution
 ### Q2.1
@@ -152,7 +154,7 @@ nrow(ccap)
 names(gay_r) # names of columns
 names(ccap)
 ```
-There are 11,948 observations in the gayreshaped dataset, and 43,998 observations in the ccap dataset. In the gayreshaped dataset, there are 6 variables: "treatment", "therm1", "therm2", therm3", "therm4". The therm variables measure thermometer scores from 0-100 toward gay men and lesbians. The ccap dataset has 6 variables: "..1", "caseid", "gaytherm", where gaytherm measures thermometer attitudes toward gay men and lesbians. 
+There are 11,948 observations in the gayreshaped dataset, and 43,998 observations in the ccap dataset. In the gayreshaped dataset, there are 6 columns: "treatment", "therm1", "therm2", therm3", "therm4". The therm variables measure thermometer scores from 0-100 toward gay men and lesbians. The ccap dataset has 3 columns: "..1", "caseid", and "gaytherm", where gaytherm measures thermometer attitudes toward gay men and lesbians. 
 
 ### Q2.2
 ```{r}
@@ -180,7 +182,7 @@ comparison <- rbind( #combine both for side by side comparison
 
 comparison
 ```
-The scores in the Study 1 sample have a mean of 58.38 (when rounded), median of 52, and standard deviation of 28.50 (when rounded). In the 2012 CCAP dataset, the mean is 58.71 (when rounded), median is 54, and standard deviation is 29.37. These numbers are noticeably similar. Given the context of the study, this raises questions on whether the data has been fabricated to appear smoother. 
+The scores in the Study 1 sample have a mean of 58.37625, median of 52, and standard deviation of 28.50288. In the 2012 CCAP dataset, the mean is 58.70517, median is 54, and standard deviation is 29.36892. These numbers are noticeably similar. Given the context of the study, this raises questions on whether the data has been fabricated to appear smoother. 
 
 ### Q2.3
 ```{r}
@@ -231,7 +233,7 @@ data.frame( # side by side view
   SD_Change = c(sd_study1, sd_study2)
 )
 ```
-If we take a look at the results side by side, we can see that Study 2 shows a slightly more realistic pattern. It has a correlation of 0.97 when rounded, with a standard deviation of 6.61. Meanwhile, Study 1's correlation is 1.00 when rounded, which is extremely high, with a standard deviation of 1.99. What this suggests is that respondents' answers barely changed. Genuine survey data should yield more random variation, which Study 1 does not account for, so Study 1 appears comparatively more suspicious. 
+If we take a look at the results side by side, we can see that Study 2 shows a slightly more realistic pattern. It has a correlation of 0.973449, with a standard deviation of change of 6.605738. Meanwhile, Study 1's correlation is 0.9975817 when rounded, which is extremely high, with a standard deviation of change of 1.987678. What this suggests is that respondents' answers barely changed. Genuine survey data should yield more random variation, which Study 1 does not account for, so Study 1 appears comparatively more suspicious. 
 ### Q2.5
 ```{r}
 install.packages("patchwork")
@@ -256,7 +258,7 @@ Upon comparing the side by side, it is alarming how near-perfectly aligned the d
 
 ## 2.3 Putting it Together
 ### Q2.6
-If we view the analyses altogether, it is evident that Study 1 data is most likely fabricated. First of all, it is rather alarming that the mean values of Study 1 versus the CCAP survey show very similar results (58.38, 58.71 when rounded). This is unusual, as real data is collected independently. Next, when we retested Study 1 and Study 2, we found that Study yielded a correlation of 1.00 when rounded, while Study 2 had a correlation of 0.97. This tells us that the responses were essentially perfectly identical, which is simply cannot be plausible, as respondents' attitudes are bound to change over time. Lastly, when observing standard deviations, we found that the standard deviations for Study 1 versus Study 2 were 1.99 and 6.61 respectively. The small standard deviation in Study 1 indicates that there is very little variation in responses amongst respondents, which is unrealistic in genuine survey data.  
+If we view the analyses altogether, it is evident that Study 1 data is most likely fabricated. First of all, it is rather alarming that the mean values of Study 1 versus the CCAP survey show very similar results (58.37625, 58.70517). This is unusual, as real data is collected independently. Next, when we retested Study 1 and Study 2, we found that Study 1 yielded a correlation of 0.9975817, while Study 2 had a correlation of 0.9734449. This tells us that the responses were essentially perfectly identical, which is simply cannot be plausible, as respondents' attitudes are bound to change over time. Lastly, when observing standard deviations, we found that the standard deviations of change for Study 1 versus Study 2 were 1.987678 and 6.605738 respectively. The small standard deviation in Study 1 indicates that there is very little variation in responses amongst respondents, which is unrealistic in genuine survey data.  
 ## 3.1 Comparing Baselines
 ### Q3.1 
 ```{r}
@@ -273,7 +275,7 @@ study2 |>
     n = n()
   )
 ```
-We find that Study 2 has 2,441 observations. At the baseline, the mean thermometer score is 57.89 in the No Contact group, and 59.35 in the Same-Sex Marriage Script by Gay Canvasser group. The standard deviations are 28.70 and 28.42 for the two groups, respectively. 
+We find that Study 2 has 2,441 observations. At the baseline, the mean thermometer score is 57.88612 in the No Contact group, and 59.35057 in the Same-Sex Marriage Script by Gay Canvasser group. The standard deviations are 28.69655 and 28.41578 for the two groups, respectively. There are 1203 observations in the No Contact group, and 1238 observations in the Gay Canvasser group. 
 
 ### Q3.2
 ```{r}
@@ -333,7 +335,7 @@ SDMstudy2 <- (mean_gayscript_study2 - mean_nocontact_study2) /
 
 SDMstudy2
 ```
-In study 2 at baseline, the mean and standard deviation of the No Contact group was 57.89 (when rounded) and 28.70 (when rounded). The Same-sex Marriage Script by Gay Canvasser group had a mean of 59.35 (when rounded) and standard deviation of 28.42 (when rounded). The standardized difference in means is 0.05128243 (0.05 when rounded). This is far below the 0.25 threshold, which indicates that the groups look well-balanced. 
+In study 2 at baseline, the mean and standard deviation of the No Contact group (control group) were 57.88612 and 28.69655. The Same-sex Marriage Script by Gay Canvasser group had a mean of 59.35057 and standard deviation of 28.41578. The standardized difference in means is 0.05128243. This is far below the 0.25 threshold, which indicates that the groups look well-balanced. 
 
 ### Q3.4
 ```{r}
@@ -365,7 +367,7 @@ comparison_study2 <- mean_gay_postconversation - mean_no_postconversation
 
 comparison_study2
 ```
-In Study 2, the mean post-conversation thermometer score is 61.20 for the Same-Sex Marriage Script by Gay Canvasser group and 57.64 for the No Contact group (both when rounded). The difference in means is 3.57 points. Since the groups were balanced at baseline, this difference suggests that the canvassing treatment did increase favorable attitudes toward gay men and lesbians.
+In Study 2, the mean post-conversation thermometer score is 61.20311 for the Same-Sex Marriage Script by Gay Canvasser group and 57.63523 for the No Contact group. The difference in means is 3.567885 points. Since the groups were balanced at baseline, this difference suggests that the canvassing treatment did increase favorable attitudes toward gay men and lesbians.
 
 ## 3.3 Uncertainty Around the Difference
 ### Q3.5
@@ -428,7 +430,7 @@ upper <- diff_means_therm2_study2 + 1.96 * SE_diff_therm2_study2
 
 c(lower, upper)
 ```
-The standard error is 1.24 when rounded, and the 95% confidence interval is 1.13, 6.00 when rounded. This interval does NOT include 0. Thus, we can conclude that the difference between Gay Canvasser and No Contact groups is statistically significant, at the 5% level. We can say that the act of canvassing increased feeling scores by approximately 1-6 points in study 2. 
+The standard error is 1.242138, and the 95% confidence interval is 1.133294, 6.002475. This interval does NOT include 0. Thus, we can conclude that the difference between Gay Canvasser and No Contact groups is statistically significant, at the 5% level. We can say that the act of canvassing increased feeling scores by approximately 1-6 points in study 2. 
 
 ## 3.4 Tracking Attitude Over Time
 ### 3.6 
@@ -455,10 +457,10 @@ correlation12
 correlation13
 correlation14
 ```
-The correlation between therm1 and therm2 is 0.97, between therm1 and therm3 is 0.96, and between therm1 and therm4 is 0.97 (all rounded values). These correlations are extremely high and do not show a clear pattern of decay over time, as the correlation with therm4 is nearly the same as with therm2 In real survey data, we would typically expect correlations to decline as waves become more distant due to natural attitude change, so this stable pattern does raise concerns about the authenticity of the data.
+The correlation between therm1 and therm2 is 0.9734449, between therm1 and therm3 is 0.594085, and between therm1 and therm4 is 0.9709017. These correlations are extremely high and do not show a clear pattern of decay over time, as the correlation with therm4 is nearly the same as with therm2 In real survey data, we would typically expect correlations to decline as waves become more distant due to natural attitude change, so this stable pattern does raise concerns about the authenticity of the data.
 
 ### Q3.7
-Study 1 and 2 differ and size and how realistic the results are. In study 2, the post-period treatment effect is 3.57 on the 0-100 thermometer scale, with a 95% confidence interval of 1.13, 6.00. This means that there is a statistically significant but uncertain effect. In contrast, study 1 showed only a 0.10 difference on the 1-5 scale at wave 2, despite the data appearing suspiciously smooth. Usually, real survey data would contain potential variation and errors, so treatment effects should be rather modest. It is important that real treatment effects are smaller and messier because peoples' attitudes are constantly changing. It's actually quite cool to see how we can pick out fabrications in data through analyses tools as simple as histograms and mean calculations. Sometimes, it takes visualization or direct side by side comparison of data to debunk patterns that look too "perfect" to be genuine. 
+Study 1 and 2 differ and size and how realistic the results are. In study 2, the post-conversation treatment effect is 3.567885 on the 0-100 thermometer scale, with a 95% confidence interval of 1.133294, 6.002475. This means that there is a statistically significant but uncertain effect. In contrast, study 1 showed only a 0.10 difference on the 1-5 scale at wave 2, despite the data appearing suspiciously smooth. Usually, real survey data would contain potential variation and errors, so treatment effects should be rather modest. It is important that real treatment effects are smaller and messier because peoples' attitudes are constantly changing. It's actually quite cool to see how we can pick out fabrications in data through analyses tools as simple as histograms and mean calculations. Sometimes, it takes visualization or direct side by side comparison of data to debunk patterns that look too "perfect" to be genuine. 
 
 # 4 Part 4: Formalizing the Evidence with Regression
 ## 4.1 Regression as a Fraud Detector
@@ -467,7 +469,7 @@ fit_s1 <- lm(therm2 ~ therm1, data = study1_control) # fit the regression
 
 summary(fit_s1) # display regression
 ```
-When rounded, the reported slope is 0.99, the R-squared is 1.00 (0.995 unrounded), and residual standard error is 1.98. 
+The reported slope is 0.992454, the R-squared is 0.9952, and residual standard error is 1.976. 
 
 ### Q4.2
 ```{r}
@@ -478,7 +480,7 @@ fit_s2 <- lm(therm2 ~ therm1, data = study2_control)
 
 summary(fit_s2)
 ```
-The Study 1 model produces a slope of 0.99 and an R-squared of 1.00, indicating that therm1 almost perfectly predicts therm2. In contrast, the Study 2 model has a lower slope of 0.97 and a lower R-squared of 0.95, along with a larger residual standard error. This pattern is consistent with what we would expect in real data, where responses change somewhat over time. The nearly perfect relationship in Study 1 is thus suspicious and consistent with the pattern we would expect if the follow-up values were artificially generated. 
+The Study 1 model produces a slope of 0.992454 and an R-squared of 0.9952, indicating that therm1 almost perfectly predicts therm2. In contrast, the Study 2 model has a lower slope of 0.968662 and a lower R-squared of 0.9476, along with a larger residual standard error. This pattern is consistent with what we would expect in real data, where responses change somewhat over time. The nearly perfect relationship in Study 1 is thus suspicious and consistent with the pattern we would expect if the follow-up values were artificially generated. 
 
 ## 4.2 Comparing Groups With Regression
 ### Q4.3
@@ -498,7 +500,7 @@ fit_groups <- lm(therm2 ~ treated, data = study2_groups) # comparing treated vs 
 
 summary(fit_groups)
 ```
-The estimated coefficient on treated is 3.57 when rounded, with a standard error of 1.24, a t-statistic of 2.87, and a p-value of 0.00 (0.00412 unrounded). This value is essentially identical to the difference in means we calculated earlier of 3.57 points, which demonstrates that a regression with a binary treatment variable yields the same result as comparing group means directly. The intercept of 57.64 represents the average therm2 score for the control group. The coefficient on treated therefore captures the difference between the treatment and control groups. Since the p<0.05, which is the significance level, we are able to conclude that the treatment effect is statistically significant.
+The estimated coefficient on treated (beta 1 hat) is 3.5679, with a standard error of 1.2423, a t-statistic of 2.872, and a p-value of 0.00412. This value is essentially identical to the difference in means we calculated earlier of 3.567885 points, which demonstrates that a regression with a binary treatment variable yields the same result as comparing group means directly. The intercept of 57.6352 represents the average therm2 score for the control group. The coefficient on treated therefore captures the difference between the treatment and control groups. Since the p<0.05, which is the significance level, we are able to conclude that the treatment effect is statistically significant.
 
 ## 4.3 Controlling for Baseline Attitudes
 ### Q4.4
@@ -516,7 +518,7 @@ fit_groups_control <- lm(therm2 ~ treated + therm1, data = study2_groups) #addin
 
 summary(fit_groups_control)
 ```
-After adding the baseline attitude therm1 as a control, the estimated treatment effect fell from 3.57 to 2.46 points. Additionally, the standard error dropped from 1.24 to 0.34. Despite the smaller coefficient, the treatment effect remains statistically significant, with a p-value<0.001. Including the baseline attitudes improves precision because therm1 strongly predicts therm2. So, we can observe that accounting for respondents’ initial attitudes explains a large portion of the variation in follow-up responses, which reduces residual noise and produces a much smaller standard error. 
+After adding the baseline attitude therm1 as a control, the estimated treatment effect fell from  3.5679 to 2.458857 points. Additionally, the standard error dropped from 1.2423 to 0.341052, which is a 72.6 percent reduction. Despite the smaller coefficient, the treatment effect remains statistically significant, with a p-value<0.001. Including the baseline attitudes improves precision because therm1 strongly predicts therm2. So, we can observe that accounting for respondents’ initial attitudes explains a large portion of the variation in follow-up responses, which reduces residual noise and produces a much smaller standard error. 
 
 ### Q4.5
 ```{r}
@@ -531,6 +533,6 @@ predicted_b
 
 predicted_a - predicted_b # difference in wave 2 attitudes
 ```
-The R-squared increases greatly from 0.00 (0.003857 unrounded) to 0.93 (rounded) after adding therm1 to the model. What this shows is that baseline attitudes account for most of the variation in follow-up attitudes, while the treatment explains only a small portion.
+The R-squared increases greatly from (0.003857 to 0.925 after adding therm1 to the model. What this shows is that baseline attitudes account for most of the variation in follow-up attitudes, while the treatment explains only a small portion.
 
-The predicted wave 2 attitude for person A is 52.48, while the predicted value for person B is 50.02. The predicted difference between them is 2.46 points, when rounded. Since both respondents start with the same baseline attitude where therm1 = 50, this difference reflects the estimated treatment effect from the regression model. Essentially, the model predicts that receiving the treatment increases the follow-up thermometer score by 2.46 points compared to the control group.
+The predicted wave 2 attitude for person A is 52.47638, while the predicted value for person B is 50.01752. The predicted difference between them is 2.45886 points. Since both respondents start with the same baseline attitude where therm1 = 50, this difference reflects the estimated treatment effect from the regression model. Essentially, the model predicts that receiving the treatment increases the follow-up thermometer score by 2.45886 points compared to the control group.
