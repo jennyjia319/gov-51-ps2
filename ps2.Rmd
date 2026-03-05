@@ -212,6 +212,7 @@ ggplot(combined_histogram, aes(x = therm)) + # side by side historgram creation
   )
 ```
 Shape-wise, both distributions look generally similar, with more concentration in respondents around the scores of 50 and 100 in both datasets. Because they appear so similar, this may be a red flag, as both these samples were supposed to have been collected independently from each other, so it is rather suspicious how they could appear so similar. 
+
 ## 2.2 Re-test Reliability
 ### Q2.4
 ```{r}
@@ -234,9 +235,9 @@ data.frame( # side by side view
 )
 ```
 If we take a look at the results side by side, we can see that Study 2 shows a slightly more realistic pattern. It has a correlation of 0.973449, with a standard deviation of change of 6.605738. Meanwhile, Study 1's correlation is 0.9975817 when rounded, which is extremely high, with a standard deviation of change of 1.987678. What this suggests is that respondents' answers barely changed. Genuine survey data should yield more random variation, which Study 1 does not account for, so Study 1 appears comparatively more suspicious. 
+
 ### Q2.5
 ```{r}
-install.packages("patchwork")
 library(patchwork) # for side by side layout
 scatterplot1 <- ggplot(study1_control, aes(x = therm1, y = therm2)) + # create Study 1 scatterplot
   geom_point(alpha = 0.3, size = 0.8) +
@@ -259,6 +260,7 @@ Upon comparing the side by side, it is alarming how near-perfectly aligned the d
 ## 2.3 Putting it Together
 ### Q2.6
 If we view the analyses altogether, it is evident that Study 1 data is most likely fabricated. First of all, it is rather alarming that the mean values of Study 1 versus the CCAP survey show very similar results (58.37625, 58.70517). This is unusual, as real data is collected independently. Next, when we retested Study 1 and Study 2, we found that Study 1 yielded a correlation of 0.9975817, while Study 2 had a correlation of 0.9734449. This tells us that the responses were essentially perfectly identical, which is simply cannot be plausible, as respondents' attitudes are bound to change over time. Lastly, when observing standard deviations, we found that the standard deviations of change for Study 1 versus Study 2 were 1.987678 and 6.605738 respectively. The small standard deviation in Study 1 indicates that there is very little variation in responses amongst respondents, which is unrealistic in genuine survey data.  
+
 ## 3.1 Comparing Baselines
 ### Q3.1 
 ```{r}
